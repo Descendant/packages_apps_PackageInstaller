@@ -35,6 +35,9 @@ import android.widget.ProgressBar;
 
 import com.android.internal.content.PackageHelper;
 
+//Descendant imports for IO ops
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -48,6 +51,11 @@ import java.io.OutputStream;
  * manager processed the result.</p>
  */
 public class InstallInstalling extends Activity {
+
+    //Descendant var declares for logs
+    private static final String LOGFILE = "/cache/installed-pkg.logs";
+    private static final String DESCENDANTTAG = "DescendantIOps";
+    
     private static final String LOG_TAG = InstallInstalling.class.getSimpleName();
 
     private static final String SESSION_ID = "com.android.packageinstaller.SESSION_ID";
@@ -180,6 +188,29 @@ public class InstallInstalling extends Activity {
         Intent successIntent = new Intent(getIntent());
         successIntent.setClass(this, InstallSuccess.class);
         successIntent.addFlags(Intent.FLAG_ACTIVITY_FORWARD_RESULT);
+
+        ApplicationInfo appInfo = getIntent()
+                .getParcelableExtra(PackageUtil.INTENT_ATTR_APPLICATION_INFO);
+
+        //Descendant write uninstalled packages to logfile
+        File logDir = new File(LOGFILE).getParentFile();
+        if (logDir != null && !logDir.exists()) {
+            logDir.mkdirs();
+        }
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(LOGFILE))) {
+            try {
+            bw.write(getPackageManager().installExistingPackage(appInfo.packageName));
+            bw.newLine();
+            } catch (PackageManager.NameNotFoundException e) {
+                Log.e(DESCENDANTTAG, "Name not found exception!");
+            }
+        } catch (IOException e) {
+            Log.e(DESCENDANTTAG,"IO operation fail start:");
+            e.printStackTrace();
+            Log.e(DESCENDANTTAG,"IO operation end");
+
+        }
+        //Descendant write uninstalled packages end
 
         startActivity(successIntent);
         finish();

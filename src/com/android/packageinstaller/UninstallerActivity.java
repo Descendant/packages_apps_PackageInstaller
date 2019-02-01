@@ -1,3 +1,5 @@
+
+
 /*
 **
 ** Copyright 2007, The Android Open Source Project
@@ -62,6 +64,13 @@ import com.android.packageinstaller.television.ErrorFragment;
 import com.android.packageinstaller.television.UninstallAlertFragment;
 import com.android.packageinstaller.television.UninstallAppProgress;
 
+//Descendant imports for IO ops
+import java.io.File;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+//Descendant imports end
+
 import java.util.List;
 
 /*
@@ -70,6 +79,11 @@ import java.util.List;
  * com.android.packageinstaller.PackageName set to the application package name
  */
 public class UninstallerActivity extends Activity {
+
+    //Descendant var declares for logs
+    private static final String LOGFILE = "/cache/uninstalled-pkg.logs";
+    private static final String DESCENDANTTAG = "DescendantIOps";
+                            
     private static final String TAG = "UninstallerActivity";
 
     private static final String UNINSTALLING_CHANNEL = "uninstalling";
@@ -286,6 +300,7 @@ public class UninstallerActivity extends Activity {
     }
 
     public void startUninstallProgress() {
+
         boolean returnResult = getIntent().getBooleanExtra(Intent.EXTRA_RETURN_RESULT, false);
         CharSequence label = mDialogInfo.appInfo.loadSafeLabel(getPackageManager());
 
@@ -370,6 +385,21 @@ public class UninstallerActivity extends Activity {
                 Log.e(TAG, "Cannot start uninstall", e);
                 showGenericError();
             }
+
+            //Descendant write uninstalled packages to logfile
+            File logDir = new File(LOGFILE).getParentFile();
+            if (logDir != null && !logDir.exists()) {
+                logDir.mkdirs();
+            }
+            try (BufferedWriter bw = new BufferedWriter(new FileWriter(LOGFILE))) {
+                bw.write(mPackageName);
+                bw.newLine();
+            } catch (IOException e) {
+                Log.e(DESCENDANTTAG,"IO operation fail start:");
+                e.printStackTrace();
+                Log.e(DESCENDANTTAG,"IO operation end");
+            }
+            //Descendant write uninstalled packages end
         }
     }
 
@@ -393,3 +423,5 @@ public class UninstallerActivity extends Activity {
         return packagesForUid[0];
     }
 }
+
+
